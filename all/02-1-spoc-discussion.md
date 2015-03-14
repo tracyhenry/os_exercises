@@ -1,67 +1,66 @@
 
 #lec 3 SPOC Discussion
 
-## ������ �������жϡ��쳣��ϵͳ����-˼����
+## 第三讲 启动、中断、异常和系统调用-思考题
 
 ## 3.1 BIOS
- 1. �Ƚ�UEFI��BIOS������
- 1. ����PXE�Ĵ����������̡�
+ 1. 比较UEFI和BIOS的区别。
+ 1. 描述PXE的大致启动流程。
 
-## 3.2 ϵͳ��������
- 1. �˽�NTLDR���������̡�
- 1. �˽�GRUB���������̡�
- 1. �Ƚ�NTLDR��GRUB�Ĺ����в��졣
- 1. �˽�u-boot�Ĺ��ܡ�
+## 3.2 系统启动流程
+ 1. 了解NTLDR的启动流程。
+ 1. 了解GRUB的启动流程。
+ 1. 比较NTLDR和GRUB的功能有差异。
+ 1. 了解u-boot的功能。
 
-## 3.3 �жϡ��쳣��ϵͳ���ñȽ�
- 1. ����˵��Linux������Щ�жϣ���Щ�쳣��
- 1. Linux��ϵͳ��������Щ�����µĹ��ܷ�������Щ��  (w2l1)
+## 3.3 中断、异常和系统调用比较
+ 1. 举例说明Linux中有哪些中断，哪些异常？
+ 1. Linux的系统调用有哪些？大致的功能分类有哪些？  (w2l1)
  
-  - LINUX�����ٸ�ϵͳ���ã������ļ����������̹������ڴ���������
-  - ÿ�����ľ������Ӱ�����
-  - ���̿��ƣ�fork
-  - �ļ�������open
-  - ϵͳ���ƣ�time
+  - LINUX有数百个系统调用，包括文件操作、进程管理、内存管理等类别。
+  - 每个类别的具体例子包括：
+  - 进程控制：fork
+  - 文件操作：open
+  - 系统控制：time
  
- 1. ��ucore lab8��answerΪ����uCore��ϵͳ��������Щ�����µĹ��ܷ�������Щ��(w2l1)
+ 1. 以ucore lab8的answer为例，uCore的系统调用有哪些？大致的功能分类有哪些？(w2l1)
  
-  - ucore��20���ϵͳ���ã�����Ϊ�ļ����������̹�����ϵͳ���ơ�
-  - ��Ҫ�����ӣ�
-  - ���̿��ƣ�sys_fork, sys_exec
-  - �ļ�������sys_pgdir, sys_read, sys_close
-  - ϵͳ���ƣ�sys_gettime
+  - ucore有20多个系统调用，分类为文件操作、进程管理和系统控制。
+  - 主要的例子：
+  - 进程控制：sys_fork, sys_exec
+  - 文件操作：sys_pgdir, sys_read, sys_close
+  - 系统控制：sys_gettime
   
-## 3.4 linuxϵͳ���÷���
- 1. ͨ������[lab1_ex0](https://github.com/chyyuu/ucore_lab/blob/master/related_info/lab1/lab1-ex0.md)�˽�LinuxӦ�õ�ϵͳ���ñ�д�ͺ��塣(w2l1)
- 
+## 3.4 linux系统调用分析
+ 1. 通过分析[lab1_ex0](https://github.com/chyyuu/ucore_lab/blob/master/related_info/lab1/lab1-ex0.md)了解Linux应用的系统调用编写和含义。(w2l1)
+  - lab1-ex0.S分别将系统调用号SYS_WRITE、标准输出函数STDOUT以及需要输出的字符串helloworld作为参数压栈，再调用int 0x80调用系统调用。
+  - objdump用于反汇编
+  - nm显示函数的入口地址
+  - file用于显示文件类型。
+
+ 2. 通过调试[lab1_ex1](https://github.com/chyyuu/ucore_lab/blob/master/related_info/lab1/lab1-ex1.md)了解Linux应用的系统调用执行过程。(w2l1)
+  - strace用来显示系统调用占用的时间、所占时间百分比、调用次数以及出错次数等。
+  - 系统调用的一般流程为：
+    - 程序员调用库函数
+    - 库函数将系统调用所需参数压栈，调用系统调用接口
+    - 操作系统根据相应系统调用编号，找到系统调用的入口
+    - 操作系统调用相应的硬件来完成系统调用
 
  ```
-  + �ɷֵ㣺˵����objdump��nm��file�Ĵ�����;��˵����ϵͳ���õľ��庬��
-  - ��û���漰��������Ҫ�㣻��0�֣�
-  - �𰸶���������Ҫ���е�ĳһ��Ҫ���������ȷ������1�֣�
-  - �𰸶���������Ҫ���������ȷ������2�֣�
-  - �𰸳��˶���������Ҫ�㶼��������ȷ�����⣬����������չ�͸��ḻ��˵����3�֣�
- 
+  + 采分点：说明了strace的大致用途，说明了系统调用的具体执行过程（包括应用，CPU硬件，操作系统的执行过程）
+  - 答案没有涉及上述两个要点；（0分）
+  - 答案对上述两个要点中的某一个要点进行了正确阐述（1分）
+  - 答案对上述两个要点进行了正确阐述（2分）
+  - 答案除了对上述两个要点都进行了正确阐述外，还进行了扩展和更丰富的说明（3分）
  ```
  
- 1. ͨ������[lab1_ex1](https://github.com/chyyuu/ucore_lab/blob/master/related_info/lab1/lab1-ex1.md)�˽�LinuxӦ�õ�ϵͳ����ִ�й��̡�(w2l1)
+## 3.5 ucore系统调用分析
+ 1. ucore的系统调用中参数传递代码分析。
+ 1. ucore的系统调用中返回结果的传递代码分析。
+ 1. 以ucore lab8的answer为例，分析ucore 应用的系统调用编写和含义。
+ 1. 以ucore lab8的answer为例，尝试修改并运行ucore OS kernel代码，使其具有类似Linux应用工具`strace`的功能，即能够显示出应用程序发出的系统调用，从而可以分析ucore应用的系统调用执行过程。
  
-
- ```
-  + �ɷֵ㣺˵����strace�Ĵ�����;��˵����ϵͳ���õľ���ִ�й��̣�����Ӧ�ã�CPUӲ��������ϵͳ��ִ�й��̣�
-  - ��û���漰��������Ҫ�㣻��0�֣�
-  - �𰸶���������Ҫ���е�ĳһ��Ҫ���������ȷ������1�֣�
-  - �𰸶���������Ҫ���������ȷ������2�֣�
-  - �𰸳��˶���������Ҫ�㶼��������ȷ�����⣬����������չ�͸��ḻ��˵����3�֣�
- ```
- 
-## 3.5 ucoreϵͳ���÷���
- 1. ucore��ϵͳ�����в������ݴ��������
- 1. ucore��ϵͳ�����з��ؽ���Ĵ��ݴ��������
- 1. ��ucore lab8��answerΪ��������ucore Ӧ�õ�ϵͳ���ñ�д�ͺ��塣
- 1. ��ucore lab8��answerΪ���������޸Ĳ�����ucore OS kernel���룬ʹ���������LinuxӦ�ù���`strace`�Ĺ��ܣ����ܹ���ʾ��Ӧ�ó��򷢳���ϵͳ���ã��Ӷ����Է���ucoreӦ�õ�ϵͳ����ִ�й��̡�
- 
-## 3.6 ������������ú�ϵͳ���õ�����
- 1. ��Ӵ����д��ִ�й�����˵����
-   1. ˵��`int`��`iret`��`call`��`ret`��ָ��׼ȷ����
+## 3.6 请分析函数调用和系统调用的区别
+ 1. 请从代码编写和执行过程来说明。
+   1. 说明`int`、`iret`、`call`和`ret`的指令准确功能
  
