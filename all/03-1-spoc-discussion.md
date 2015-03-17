@@ -51,16 +51,133 @@ NOTICE
 请参考ucore lab2代码，采用`struct pmm_manager` 根据你的`学号 mod 4`的结果值，选择四种（0:最优匹配，1:最差匹配，2:最先匹配，3:buddy systemm）分配算法中的一种或多种，在应用程序层面(可以 用python,ruby,C++，C，LISP等高语言)来实现，给出你的设思路，并给出测试用例。 (spoc)
 
 ```
-如何表示空闲块？ 如何表示空闲块列表？ 
-[(start0, size0),(start1,size1)...]
-在一次malloc后，如果根据某种顺序查找符合malloc要求的空闲块？如何把一个空闲块改变成另外一个空闲块，或消除这个空闲块？如何更新空闲块列表？
-在一次free后，如何把已使用块转变成空闲块，并按照某种顺序（起始地址，块大小）插入到空闲块列表中？考虑需要合并相邻空闲块，形成更大的空闲块？
-如果考虑地址对齐（比如按照4字节对齐），应该如何设计？
-如果考虑空闲/使用块列表组织中有部分元数据，比如表示链接信息，如何给malloc返回有效可用的空闲块地址而不破坏
-元数据信息？
-伙伴分配器的一个极简实现
-http://coolshell.cn/tag/buddy
+
+#include <cstdio>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+struct block
+{
+  int start, size;
+  block *pre, *suc;
+};
+
+const int MAX = 4000;
+block *head, *tail;
+
+void initBlock()
+{
+  head = new block();
+  tail = new block();
+  st = new block();
+  st->start = 0;
+  st->size = MAX;
+  st->pre = head;
+  st->suc = tail;
+  head->pre = null;
+  head->suc = st;
+  tail->pre = st;
+  tail->suc = null;
+}
+
+void insertBlock(block* it, int start, int size)
+{
+  block *curBlock = new block();
+  curBlock->size = size;
+  curBlock->start = start;
+  curBlock->pre = it;
+  curBlock->suc = it->suc;
+  curBlock->pre->suc = curBlock;
+  curBlock->suc->pre = curBlock;
+}
+
+void deleteBlock(block *it)
+{
+  it->pre->suc = it->suc;
+  it->suc->pre = it->pre;
+  delete it;
+}
+
+int insert(int size)
+{
+  //最优匹配，size从小到大排序
+  int leftSize = -1;
+  int leftStart = -1;
+  for (block *it = head->suc; it != tail; it = it->suc)
+    if (it->size >= size)
+    {
+      leftSize = it->size - size;
+      leftStart = it->start;
+      deleteBlock(it);
+      break;
+    }
+  
+  //没有找到
+  if (leftSize == -1)
+    return -1;
+  
+  if (leftSize == 0)
+    return leftStart + leftSize;
+    
+  //插入
+  bool inserted = false;
+  for (block *it = head->suc; it != tail; it = it->suc)
+    if (it->size > leftSize)
+    {
+      insertBlock(it -> pre, leftStart, leftSize)
+      inserted = true;
+      break;
+    }
+  if (! inserted)
+    insertBlock(tail->pre, leftStart, leftSize);
+  return leftStart + leftSize;
+}
+
+void free(int start, int size)
+{
+  int lo = start, hi = start + size;
+  
+  //找出free当前块之后影响的所有空闲区，是一个连续的区间
+  while (1)
+  {
+    bool expanded;
+    for (block *it = head->suc; it != tail; it = it->suc)
+      if (it->start == hi || it->start + it->size == lo)
+      {
+        lo = min(lo, it->start);
+        hi = max(hi, it->start + it->size);
+        deleteBlock(it);
+        expanded = true;
+        break;
+      }
+  }
+  
+  //insert this final block
+  bool inserted = false;
+  for (block *it = head ->suc; it!= tail; it = it->suc)
+    if (it->size >= hi - lo)
+    {
+      insertBlock(it->pre, lo, hi - lo);
+      inserted = true;
+      break;
+    }
+  if (! inserted)
+    insertBlock(tail->pre, lo, hi - lo);
+}
+
+int main()
+{
+  initBlock();
+  int s1, s2, s3;
+  
+  s1 = insert(1000);  //s1 = 3000
+  s2 = insert(1000);  //s2 = 2000
+  free(s1, 1000);     //two free blocks now: [0, 2000] & [3000, 4000]
+  s3 = insert(1000);  //s3 = 3000
+}
 ```
+
 
 --- 
 
