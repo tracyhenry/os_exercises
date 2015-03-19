@@ -132,7 +132,8 @@ int main()
 			
 ```
 
-运行结果为：
+- 运行结果为：
+
 ```
 Virtual Address 6c74:
   --> pde index: 0x1b pde contents: (valid 1, pfn 0x20)
@@ -182,7 +183,6 @@ Virtual Address 748b:
   --> pde index: 0x1d pde contents: (valid 1, pfn 0x0)
     --> pte index: 0x4 pde contents: (valid 0, pfn 0x7f)
       --> Fault (page table entry not valid)
-
 ```
 			
 		
