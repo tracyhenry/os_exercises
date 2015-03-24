@@ -138,29 +138,29 @@ va 0xce6c3f32, pa 0x007d4f32
 
 - 编写程序如下：
 ```
-	string s1, s2;	
-	unsigned int va, pa;
-	while (cin >> s1 >> s2)
-	{
-		stringstream sin1(s1);
-		stringstream sin2(s2);
-		sin1 >> std::hex >> va;
-		sin2 >> std::hex >> pa;
-		
-		cout << "va 0x" << std::hex << va << ", pa 0x" << std::hex << pa << ", ";
-		
-		unsigned int pde_idx = va >> 22;
-		cout << "pde_idx 0x" << std::hex << pde_idx << ", ";
-		
-		unsigned int pde_ctx = ((pde_idx - 3 * 256 + 1) << 12) + 3;
-		cout << "pde_ctx 0x" << std::hex << pde_ctx << ", ";
-		
-		unsigned int pte_idx = (va >> 12) & 1023;
-		cout << "pte_idx 0x" << std::hex << pte_idx << ", ";
-		
-		unsigned int pte_ctx = ((pa >> 12) << 12) + 3;
-		cout << "pte_ctx 0x" << std::hex << pte_ctx << endl; 
-	}
+string s1, s2;	
+unsigned int va, pa;
+while (cin >> s1 >> s2)
+{
+	stringstream sin1(s1);
+	stringstream sin2(s2);
+	sin1 >> std::hex >> va;
+	sin2 >> std::hex >> pa;
+	
+	cout << "va 0x" << std::hex << va << ", pa 0x" << std::hex << pa << ", ";
+	
+	unsigned int pde_idx = va >> 22;
+	cout << "pde_idx 0x" << std::hex << pde_idx << ", ";
+	
+	unsigned int pde_ctx = ((pde_idx - 3 * 256 + 1) << 12) + 3;
+	cout << "pde_ctx 0x" << std::hex << pde_ctx << ", ";
+	
+	unsigned int pte_idx = (va >> 12) & 1023;
+	cout << "pte_idx 0x" << std::hex << pte_idx << ", ";
+	
+	unsigned int pte_ctx = ((pa >> 12) << 12) + 3;
+	cout << "pte_ctx 0x" << std::hex << pte_ctx << endl; 
+}
 ```
 运行结果为：
 ```
