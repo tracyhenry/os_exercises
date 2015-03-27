@@ -91,45 +91,147 @@ Virtual Address 6890:
 Virtual Address 0af6:
 Virtual Address 1e6f:
 ```
-
-**提示:**
+- 编写如下程序：
 ```
-页大小（page size）为32 Bytes(2^5)
-页表项1B
+#include <algorithm>
+#include <iostream>
+#include <cstring>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+using namespace std;
 
-8KB的虚拟地址空间(2^13)
-一级页表：2^5
-PDBR content: 0xd80（1101_100 0_0000, page 0x6c）
 
-page 6c: e1(1110 0001) b5(1011 0101) a1(1010 0001) c1(1100 0001)
-         b3(1011 0011) e4(1110 0100) a6(1010 0110) bd(1011 1101)
-二级页表：2^5
-页内偏移：2^5
+int mem[4096];
+int disk[4096];
 
-4KB的物理内存空间（physical memory）(2^12)
-物理帧号：2^7
 
-Virtual Address 0330(0 00000 11001 1_0000):
-  --> pde index:0x0(00000)  pde contents:(0xe1, 11100001, valid 1, pfn 0x61(page 0x61))
-  page 6c: e1 b5 a1 c1 b3 e4 a6 bd 7f 7f 7f 7f 7f 7f 7f 7f
-           7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
-  page 61: 7c 7f 7f 4e 4a 7f 3b 5a 2a be 7f 6d 7f 66 7f a7
-           69 96 7f c8 3a 7f a5 83 07 e3 7f 37 62 30 7f 3f 
-    --> pte index:0x19(11001)  pte contents:(0xe3, 1 110_0011, valid 1, pfn 0x63)
-  page 63: 16 00 0d 15 00 1c 1d 16 02 02 0b 00 0a 00 1e 19
-           02 1b 06 06 14 1d 03 00 0b 00 12 1a 05 03 0a 1d
-      --> To Physical Address 0xc70(110001110000, 0xc70) --> Value: 02
+int main()
+{
+    ifstream fin1("mem.in");
+    ifstream fin2("disk.in");
+    ifstream fin3("a.in");
+    freopen("a.out", "w", stdout);
 
-Virtual Address 1e6f(0 001_11 10_011 0_1111):
-  --> pde index:0x7(00111)  pde contents:(0xbd, 10111101, valid 1, pfn 0x3d)
-  page 6c: e1 b5 a1 c1 b3 e4 a6 bd 7f 7f 7f 7f 7f 7f 7f 7f
-           7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
-  page 3d: f6 7f 5d 4d 7f 04 29 7f 1e 7f ef 51 0c 1c 7f 7f
-           7f 76 d1 16 7f 17 ab 55 9a 65 ba 7f 7f 0b 7f 7f 
-    --> pte index:0x13  pte contents:(0x16, valid 0, pfn 0x16)
-  disk 16: 00 0a 15 1a 03 00 09 13 1c 0a 18 03 13 07 17 1c 
-           0d 15 0a 1a 0c 12 1e 11 0e 02 1d 10 15 14 07 13
-      --> To Disk Sector Address 0x2cf(0001011001111) --> Value: 1c
+    string s;
+    for (int i = 0; i < 128; i ++)  //128 pages
+    {
+        fin1 >> s; // page 
+        fin1 >> s; // xx:
+
+        for (int j = 0; j < 32; j ++)
+        {
+            fin1 >> s;
+            stringstream sin1(s);
+            sin1 >> std::hex >> mem[i * 32 + j];
+        }
+    }
+
+    for (int i = 0; i < 128; i ++)  //128 disk sectors
+    {
+        fin2 >> s; // page 
+        fin2 >> s; // xx:
+
+        for (int j = 0; j < 32; j ++)
+        {
+            fin2 >> s;
+            stringstream sin2(s);
+            sin2 >> std::hex >> disk[i * 32 + j];
+        }
+    }
+
+    int PDBR = 3456;
+    while (fin3 >> s)
+    {
+        fin3 >> s;
+        fin3 >> s;
+
+        int va;
+        stringstream sin3(s);   
+        sin3 >> std::hex >> va;
+        cout << "Virtual Address " << s << ":" << endl;
+
+		int pde_index = va >> 10;
+		int pde_content = mem[PDBR + pde_index];
+		int pde_valid = (pde_content & 128) >> 7;
+		int pt_pa = pde_content & 127;
+
+		cout << "  --> pde index: 0x" << std::hex << pde_index << "  pde contents: (valid " 
+			<< pde_valid << ", pt 0x" << std::hex << pt_pa << ")" << endl;
+		
+		if (! pde_valid)
+		{
+			cout << "    --> PDE invalid" << endl << endl;
+			continue;
+		}
+		
+		int pte_index = (va >> 5) & 31;
+		int pte_content = mem[(pt_pa << 5) + pte_index];
+		int pte_valid = (pte_content & 128) >> 7;
+		int pfn = pte_content & 127;
+		
+		cout << "    --> pte index: 0x" << std::hex << pte_index << "  pte contents: (valid " 
+			<< pte_valid << ", pfn 0x" << std::hex << pfn << ")" << endl;
+		
+		if (! pte_valid)
+		{
+			if (pfn == 127)
+				cout << "      --> This page is neither in memory nor on disk." << endl << endl;
+			else
+			{
+				int disk_addr = (pfn << 5) + (va & 31);
+				int disk_content = disk[disk_addr];
+				cout << "      --> To Disk Sector Address 0x" << std::hex << disk_addr 
+					<< " --> Value: " << std::hex << disk_content << endl << endl;
+			}
+			continue;
+		}
+		
+		int pa = (pfn << 5) + (va & 31);
+		int pa_content = mem[pa];
+		cout << "      --> To Physical Address 0x" << std::hex << pa 
+			<< " --> Value: " << std::hex << pa_content << endl << endl;
+	}
+	return 0;
+}
+```
+- 运行结果为：
+```
+Virtual Address 0330:
+  --> pde index: 0x0  pde contents: (valid 1, pt 0x61)
+    --> pte index: 0x19  pte contents: (valid 1, pfn 0x63)
+      --> To Physical Address 0xc70 --> Value: 2
+
+Virtual Address 1e6f:
+  --> pde index: 0x7  pde contents: (valid 1, pt 0x3d)
+    --> pte index: 0x13  pte contents: (valid 0, pfn 0x16)
+      --> To Disk Sector Address 0x2cf --> Value: 1c
+
+Virtual Address 6653:
+  --> pde index: 0x19  pde contents: (valid 0, pt 0x7f)
+    --> PDE invalid
+
+Virtual Address 1c13:
+  --> pde index: 0x7  pde contents: (valid 1, pt 0x3d)
+    --> pte index: 0x0  pte contents: (valid 1, pfn 0x76)
+      --> To Physical Address 0xed3 --> Value: 12
+
+Virtual Address 6890:
+  --> pde index: 0x1a  pde contents: (valid 0, pt 0x7f)
+    --> PDE invalid
+
+Virtual Address 0af6:
+  --> pde index: 0x2  pde contents: (valid 1, pt 0x21)
+    --> pte index: 0x17  pte contents: (valid 0, pfn 0x7f)
+      --> This page is neither in memory nor on disk.
+
+Virtual Address 1e6f:
+  --> pde index: 0x7  pde contents: (valid 1, pt 0x3d)
+    --> pte index: 0x13  pte contents: (valid 0, pfn 0x16)
+      --> To Disk Sector Address 0x2cf --> Value: 1c
 ```
 
 ## 扩展思考题
