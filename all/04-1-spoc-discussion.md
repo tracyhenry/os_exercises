@@ -104,10 +104,8 @@ Virtual Address 1e6f:
 #include <map>
 using namespace std;
 
-
 int mem[4096];
 int disk[4096];
-
 
 int main()
 {
