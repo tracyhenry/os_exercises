@@ -50,15 +50,7 @@
  - [页置换算法实现的参考实例](https://github.com/chyyuu/ucore_lab/blob/master/related_info/lab3/page-replacement-policy.py)
 - 学号2011011244，实现LRU，编写如下代码：
 ```
-#include <algorithm>
 #include <iostream>
-#include <cstring>
-#include <fstream>
-#include <sstream>
-#include <vector>
-#include <string>
-#include <set>
-#include <map>
 using namespace std;
 
 int main()
