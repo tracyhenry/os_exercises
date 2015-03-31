@@ -48,7 +48,128 @@
 
 (2)（spoc）根据你的`学号 mod 4`的结果值，确定选择四种替换算法（0：LRU置换算法，1:改进的clock 页置换算法，2：工作集页置换算法，3：缺页率置换算法）中的一种来设计一个应用程序（可基于python, ruby, C, C++，LISP等）模拟实现，并给出测试。请参考如python代码或独自实现。
  - [页置换算法实现的参考实例](https://github.com/chyyuu/ucore_lab/blob/master/related_info/lab3/page-replacement-policy.py)
- 
+- 学号2011011244，实现LRU，编写如下代码：
+```
+#include <algorithm>
+#include <iostream>
+#include <cstring>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+using namespace std;
+
+int main()
+{
+	freopen("a.in", "r", stdin);
+	freopen("a.out", "w", stdout);
+	const int PhySize = 4;    //number of physical page;	
+	int S[PhySize]; 		  //index from 0~Physize-1, least recent ~ most recent
+	
+	//initial map
+	for (int i = 1; i <= 4; i ++)
+		S[i - 1] = i;
+	cout << "Initial Stack: " << endl << "      ";
+	for (int i = 0; i < PhySize; i ++)
+		cout << S[i] << " ";
+	cout << endl;
+	
+	while (1)
+	{
+		int x;
+		cin >> x;
+		if (x < 1)		//virtual pages are numbered by postive integers
+			break;
+		//in the stack
+		int inStack = -1;
+		for (int i = 0; i < PhySize; i ++)
+			if (S[i] == x)
+				inStack = i;
+		cout << "Current virtual page: " << x << "    " << endl; 
+		if (inStack >= 0)
+		{
+			for (int i = inStack; i < PhySize - 1; i ++)	
+				S[i] = S[i + 1];
+			S[PhySize - 1] = x;
+			cout << "This page is in the memory!" << endl;
+		}
+		else
+		{
+			for (int i = 0; i < PhySize - 1; i ++)
+				S[i] = S[i + 1];
+			S[PhySize - 1] = x;	
+			cout << "Page Fault!" << endl;
+		}
+				
+		cout << "Current Stack: " << endl << "      ";
+		for (int i = 0; i < PhySize; i ++)
+			cout << S[i] << " ";
+		cout << endl << endl;
+	}
+	return 0;
+}
+```
+- 运行输入为：
+```
+1 3 4 5 6 4 2 6 9 2
+0
+```
+- 运行输出为：
+```
+Initial Stack: 
+      1 2 3 4 
+Current virtual page: 1    
+This page is in the memory!
+Current Stack: 
+      2 3 4 1 
+
+Current virtual page: 3    
+This page is in the memory!
+Current Stack: 
+      2 4 1 3 
+
+Current virtual page: 4    
+This page is in the memory!
+Current Stack: 
+      2 1 3 4 
+
+Current virtual page: 5    
+Page Fault!
+Current Stack: 
+      1 3 4 5 
+
+Current virtual page: 6    
+Page Fault!
+Current Stack: 
+      3 4 5 6 
+
+Current virtual page: 4    
+This page is in the memory!
+Current Stack: 
+      3 5 6 4 
+
+Current virtual page: 2    
+Page Fault!
+Current Stack: 
+      5 6 4 2 
+
+Current virtual page: 6    
+This page is in the memory!
+Current Stack: 
+      5 4 2 6 
+
+Current virtual page: 9    
+Page Fault!
+Current Stack: 
+      4 2 6 9 
+
+Current virtual page: 2    
+This page is in the memory!
+Current Stack: 
+      4 6 9 2 
+```
 ## 扩展思考题
 （1）了解LIRS页置换算法的设计思路，尝试用高级语言实现其基本思路。此算法是江松博士（导师：张晓东博士）设计完成的，非常不错！
 
