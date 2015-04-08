@@ -1,95 +1,95 @@
-#lec10 ���̣��߳̿���spoc��ϰ
+#lec10 进程／线程控制spoc练习
 
-## SPOC������ϰ
-### �����л�
+## SPOC个人练习
+### 进程切换
 
-(1)ucore�Ľ��̿��ƿ����ݽṹ�������֯�ģ���Ҫ�ֶηֱ��ʾʲô������Щ���������������޸ģ�����Щ�����õ�����
+(1)ucore的进程控制块数据结构是如何组织的？主要字段分别表示什么？有哪些函数对它进行了修改？有哪些函数用到它？
 ```
 arch_proc_struct
 mm_struct
 need_resched
 wait_state
-run_link��list_link��hash_link
+run_link、list_link、hash_link
 ```
 
-### ���̴���
+### 进程创建
 
-(1)fork()�ķ���ֵ��Ψһ���𣿸����̺��ӽ��̵ķ���ֵ�ǲ�ͬ�ġ����ҵ���Ӧ�ĸ�ֵ���롣
+(1)fork()的返回值是唯一的吗？父进程和子进程的返回值是不同的。请找到相应的赋值代码。
 
-(2)�½��̴���ʱ�Ľ��̱�ʶ��������õģ���ָ����ش��롣
+(2)新进程创建时的进程标识是如何设置的？请指明相关代码。
 
-(3)fork()�������н��̱�ʶ�ĸ�ֵ˳��˵�����̵�ִ��˳��
+(3)fork()的例子中进程标识的赋值顺序说明进程的执行顺序。
 
-(4)����ucore����ʱ��ʾ���н��̣�idleproc���ͳ�ʼ���̣�initproc���Ľ��̱�ʶ��
+(4)请在ucore启动时显示空闲进程（idleproc）和初始进程（initproc）的进程标识。
 
-### ���̼���
+### 进程加载
 
-(1)���ؽ��̺��½��̽������״̬������ʼִ��ʱ�ĵ�һ��ָ���λ�ã���elf�б�����ʲô�ط����ڼ��غ󣬱�����ʲô�ط���
+(1)加载进程后，新进程进入就绪状态，它开始执行时的第一条指令的位置，在elf中保存在什么地方？在加载后，保存在什么地方？
 
->���̵ȴ����˳�
+>进程等待与退出
 
-(2)�Է���wait()��exit()�Ľ������ʲô�ط���exit()����ʲôʱ��Ž�ȥ�ģ�wait()��ʲô�ط�ȡ�����ģ�
+(2)试分析wait()和exit()的结果放在什么地方？exit()是在什么时候放进去的？wait()在什么地方取到出的？
 
-(3)�Է���sleep()ϵͳ���õ�ʵ�֡���ʲô�ط����õĶ�ʱ��������Ӧ�ĵȴ��������ĸ������Ļ��Ѳ�����ʲô�ط���
+(3)试分析sleep()系统调用的实现。在什么地方设置的定时器？它对应的等待队列是哪个？它的唤醒操作在什么地方？
 
-## SPOCС��˼����
+## SPOC小组思考题
 
-(1) (spoc)���һ���򻯵Ľ��̹�����ϵͳ�����Թ������������¼򻯽���.������[�ο�����](https://github.com/chyyuu/ucore_lab/blob/master/related_info/lab5/process-cpuio-homework.py)����������룬����ɣ�YOUR CODE"���ֵ����ݣ����ɣ�����һ��
+(1) (spoc)设计一个简化的进程管理子系统，可以管理并调度如下简化进程.给出了[参考代码](https://github.com/chyyuu/ucore_lab/blob/master/related_info/lab5/process-cpuio-homework.py)，请理解代码，并完成＂YOUR CODE"部分的内容．　可２个人一组
 
-### ���̵�״̬ 
+### 进程的状态 
 ```
- - RUNNING - ��������ʹ��CPU
- - READY   - ���̿�ʹ��CPU
- - WAIT    - ���̵ȴ�I/O���
- - DONE    - ���̽���
-```
-
-### ���̵���Ϊ
-```
- - ʹ��CPU, 
- - ����YIELD����,����ʹ��CPU
- - ����I/O��������,����ʹ��CPU
+ - RUNNING - 进程正在使用CPU
+ - READY   - 进程可使用CPU
+ - WAIT    - 进程等待I/O完成
+ - DONE    - 进程结束
 ```
 
-### ���̵���
- - ʹ��FIFO/FCFS�������ȷ���, ֻ�н���done, yield, ioʱ�Ż�ִ���л�
-   - �Ȳ���λ��proc_info���е�curr_procԪ��(��ǰ����)֮��Ľ���(curr_proc+1..end)�Ƿ���READY̬��
-   - �ٲ���λ��proc_info���е�curr_procԪ��(��ǰ����)֮ǰ�Ľ���(begin..curr_proc-1)�Ƿ���READY̬
-   - �綼û�У�����ִ��curr_procֱ������
+### 进程的行为
+```
+ - 使用CPU, 
+ - 发出YIELD请求,放弃使用CPU
+ - 发出I/O操作请求,放弃使用CPU
+```
 
-### �ؼ�ģ�����
- - io_length : IO������ִ��ʱ��
- - ���̿��ƿ�
+### 进程调度
+ - 使用FIFO/FCFS：先来先服务, 只有进程done, yield, io时才会执行切换
+   - 先查找位于proc_info队列的curr_proc元素(当前进程)之后的进程(curr_proc+1..end)是否处于READY态，
+   - 再查找位于proc_info队列的curr_proc元素(当前进程)之前的进程(begin..curr_proc-1)是否处于READY态
+   - 如都没有，继续执行curr_proc直到结束
+
+### 关键模拟变量
+ - io_length : IO操作的执行时间
+ - 进程控制块
 ```
 PROC_CODE = 'code_'
 PROC_PC = 'pc_'
 PROC_ID = 'pid_'
 PROC_STATE = 'proc_state_'
 ```
- - ��ǰ���� curr_proc 
- - �����б���proc_info�Ǿ������̵Ķ��У�list����
- - �������У�������ʾ����Ҫ˵��ÿ���̵���Ϊ������������ʹ��CPU ;(2)�ȴ�I/O
+ - 当前进程 curr_proc 
+ - 进程列表：proc_info是就绪进程的队列（list），
+ - 在命令行（如下所示）需要说明每进程的行为特征：（１）使用CPU ;(2)等待I/O
 ```
    -l PROCESS_LIST, --processlist= X1:Y1,X2:Y2,...
-   X �ǽ��̵�ִ��ָ����; 
-   ����ִ��yieldָ����̷���CPU,����READY״̬���ı���(0..100) 
-   ����ִ��I/O����ָ����̷���CPU,����WAIT״̬���ı���(0..100)
+   X 是进程的执行指令数; 
+   Ｙ是执行yield指令（进程放弃CPU,进入READY状态）的比例(0..100) 
+   Ｚ是执行I/O请求指令（进程放弃CPU,进入WAIT状态）的比例(0..100)
 ```
- - �����л���Ϊ��ϵͳ������ʱ(when)�л�����:���̽�������̷���yield����
+ - 进程切换行为：系统决定何时(when)切换进程:进程结束或进程发出yield请求
 
-### ����ִ��
+### 进程执行
 ```
 instruction_to_execute = self.proc_info[self.curr_proc][PROC_CODE].pop(0)
 ```
 
-### �ؼ�����
- - ϵͳִ�й��̣�run
- - ִ��״̬�л�����:��move_to_ready/running/done��
- - ���Ⱥ�����next_proc
+### 关键函数
+ - 系统执行过程：run
+ - 执行状态切换函数:　move_to_ready/running/done　
+ - 调度函数：next_proc
 
-### ִ��ʵ��
+### 执行实例
    
-#### ��1
+#### 例1
 ```
 $./process-simulation.py  -l 5:30:30,5:40:30 -c
 Produce a trace of what would happen when you run these processes:
@@ -124,7 +124,7 @@ Time     PID: 0     PID: 1        CPU        IOs
  12     RUN:cpu       DONE          1            
  13     RUN:yld       DONE          1            
 ```
-
+- 代码如下：
 ```python
 #! /usr/bin/env python
 
